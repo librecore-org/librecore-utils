@@ -29,3 +29,4 @@ target_link_libraries(${OUTPUT_BIN} ${PCIUTILS_LIBRARIES})
 target_link_libraries(${OUTPUT_BIN} ${ZLIB_LIBRARIES})
 
 install(TARGETS ${OUTPUT_BIN} DESTINATION sbin)
+install(FILES inteltool.8 DESTINATION man/man8)
