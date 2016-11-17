@@ -36,3 +36,4 @@ include(CPack)
 # Add main target.
 add_subdirectory(inteltool)
 add_subdirectory(ectool)
+add_subdirectory(cbmem)
