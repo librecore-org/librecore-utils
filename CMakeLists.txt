@@ -12,6 +12,7 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
 # Put common headers into include path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/commonlib/include)
+add_subdirectory(commonlib)
 
 ###############
 # RPM Packaging
@@ -43,3 +44,4 @@ include(CPack)
 add_subdirectory(inteltool)
 add_subdirectory(ectool)
 add_subdirectory(cbmem)
+add_subdirectory(cbfstool)
