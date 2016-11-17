@@ -24,6 +24,8 @@ set(CPACK_PACKAGE_URL "librecore.org")
 set(CPACK_RPM_PACKAGE_LICENSE "GPL 2.0")
 set(CPACK_RPM_PACKAGE_GROUP "User Interface/Desktops")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "The librecore firmware support utils")
+set(CPACK_RPM_PACKAGE_DESCRIPTION "The librecore utils project contains all the supporting
+userland components for both developers and users alike.")
 set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
 include(CPack)
