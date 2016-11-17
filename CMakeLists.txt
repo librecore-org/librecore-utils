@@ -10,6 +10,9 @@ SET(${PROJECT_NAME}_PATCH_LEVEL 0)
 # Add local repository for FindXXX.cmake modules.
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
+# Put common headers into include path
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/commonlib/include)
+
 ###############
 # RPM Packaging
 ###############
