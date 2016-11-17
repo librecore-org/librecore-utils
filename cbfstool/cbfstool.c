@@ -522,6 +522,7 @@ static int cbfstool_convert_fsp(struct buffer *buffer,
 
 	memcpy(buffer_get(&fsp), buffer_get(buffer), buffer_size(buffer));
 
+#if STUPID_GOOGLE
 	/* Replace the buffer contents w/ the relocated ones on success. */
 	if (fsp_component_relocate(address, buffer_get(&fsp), buffer_size(&fsp))
 	    > 0) {
@@ -531,6 +532,7 @@ static int cbfstool_convert_fsp(struct buffer *buffer,
 		buffer_delete(&fsp);
 		WARN("Invalid FSP variant.\n");
 	}
+#endif
 
 	/* Let the raw path handle all the cbfs metadata logic. */
 	return cbfstool_convert_raw(buffer, offset, header);

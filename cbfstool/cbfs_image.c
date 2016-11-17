@@ -1406,12 +1406,14 @@ int cbfs_print_entry_info(struct cbfs_image *image, struct cbfs_file *entry,
 		size_t hash_len = widths_cbfs_hash[hash_type];
 		char *hash_str = bintohex(hash->hash_data, hash_len);
 		uint8_t local_hash[hash_len];
+#if STUPID_GOOGLE
 		if (vb2_digest_buffer(CBFS_SUBHEADER(entry),
 			ntohl(entry->len), hash_type, local_hash,
 			hash_len) != VB2_SUCCESS) {
 			fprintf(fp, "failed to hash '%s'\n", name);
 			break;
 		}
+#endif
 		int valid = memcmp(local_hash, hash->hash_data, hash_len) == 0;
 		const char *valid_str = valid ? "valid" : "invalid";
 
@@ -1822,9 +1824,11 @@ int cbfs_add_file_hash(struct cbfs_file *header, struct buffer *buffer,
 		return -1;
 
 	attrs->hash_type = htonl(hash_type);
+#if STUPID_GOOGLE
 	if (vb2_digest_buffer(buffer_get(buffer), buffer_size(buffer),
 		hash_type, attrs->hash_data, hash_size) != VB2_SUCCESS)
 		return -1;
+#endif
 
 	return 0;
 }
