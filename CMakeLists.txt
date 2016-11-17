@@ -31,6 +31,12 @@ set(CPACK_RPM_PACKAGE_DESCRIPTION "The librecore utils project contains all the 
 userland components for both developers and users alike.")
 set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
+set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST
+  /usr/local
+  /usr/local/sbin
+  /usr/local/share
+  /usr/local/share/man
+)
 include(CPack)
 
 # Add main target.
