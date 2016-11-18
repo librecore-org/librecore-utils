@@ -17,6 +17,8 @@ before_install:
 - sudo apt-get install -qq libpci-dev -y
 - sudo apt-get install -qq zlib1g-dev -y
 - sudo apt-get install -qq cmake -y
+- sudo apt-get install -qq rpm -y
+- sudo apt-get install -qq debian-builder -y
 
 cache:
 - apt
