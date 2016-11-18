@@ -1,4 +1,4 @@
-librecore-utils
+librecore-utils [![travis](https://travis-ci.org/librecore-org/librecore-utils.svg?branch=master)](https://travis-ci.org/librecore-org/librecore-utils)
 ===============
 
 ABOUT
