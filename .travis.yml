@@ -7,7 +7,9 @@ dist: trusty
 languages: c
 
 before_install:
+- sudo add-apt-repository ppa:raffi-enficiaud-x/yayi -y
 - sudo apt-get update -qq -y
+- sudo apt-get remove cmake-data cmake -y
 - sudo apt-get install -qq llvm -y
 - sudo apt-get install -qq clang -y
 - sudo apt-get install -qq binutils -y
@@ -16,7 +18,7 @@ before_install:
 - sudo apt-get install -qq flex -y
 - sudo apt-get install -qq libpci-dev -y
 - sudo apt-get install -qq zlib1g-dev -y
-- sudo apt-get install -qq cmake -y
+- sudo apt-get install cmake -y
 - sudo apt-get install -qq rpm -y
 - sudo apt-get install -qq debian-builder -y
 
