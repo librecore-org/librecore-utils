@@ -1,0 +1,44 @@
+os:
+- linux
+
+sudo: required
+dist: trusty
+
+languages: c
+
+before_install:
+- sudo apt-get update -qq -y
+- sudo apt-get install llvm -y
+- sudo apt-get install clang -y
+- sudo apt-get install binutils -y
+- sudo apt-get install pkg-config -y
+- sudo apt-get install bison -y
+- sudo apt-get install flex -y
+- sudo apt-get install libpci-dev -y
+- sudo apt-get install zlib-dev -y
+- sudo apt-get install cmake -y
+- sudo apt-get install make -y
+
+cache:
+- apt
+
+script:
+- export CC=clang
+- rm -fr build
+- mkdir build
+- cd build
+- cmake ../ && make -j2 && make package
+
+notifications:
+  email:
+    on_success: never
+    on_failure: never
+  irc:
+    on_success: always
+    on_failure: always
+    channels:
+      - "chat.freenode.net#librecore"
+    template:
+      - "%{result} %{message} %{repository_name}:%{branch}:%{commit} (%{author} - %{commit_subject})"
+      - "View code      : %{compare_url}"
+      - "View build log : %{build_url}"
