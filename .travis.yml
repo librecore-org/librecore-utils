@@ -8,16 +8,15 @@ languages: c
 
 before_install:
 - sudo apt-get update -qq -y
-- sudo apt-get install llvm -y
-- sudo apt-get install clang -y
-- sudo apt-get install binutils -y
-- sudo apt-get install pkg-config -y
-- sudo apt-get install bison -y
-- sudo apt-get install flex -y
-- sudo apt-get install libpci-dev -y
-- sudo apt-get install zlib-dev -y
-- sudo apt-get install cmake -y
-- sudo apt-get install make -y
+- sudo apt-get install -qq llvm -y
+- sudo apt-get install -qq clang -y
+- sudo apt-get install -qq binutils -y
+- sudo apt-get install -qq pkg-config -y
+- sudo apt-get install -qq bison -y
+- sudo apt-get install -qq flex -y
+- sudo apt-get install -qq libpci-dev -y
+- sudo apt-get install -qq zlib1g-dev -y
+- sudo apt-get install -qq cmake -y
 
 cache:
 - apt
