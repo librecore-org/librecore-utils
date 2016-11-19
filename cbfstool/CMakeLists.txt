@@ -66,6 +66,11 @@ add_library(cbfs_lib
   linux_trampoline.c
   cbfs-payload-linux.c
 )
+
+add_library(vbootstub_lib
+  vboot_justenough/2sha_stub.c
+)
+
 add_executable("cbfstool" cbfstool.c)
 target_link_libraries("cbfstool" cbfs_lib)
 target_link_libraries("cbfstool" common_lib)
@@ -73,5 +78,6 @@ target_link_libraries("cbfstool" flashmap_lib)
 target_link_libraries("cbfstool" fmap_lib)
 target_link_libraries("cbfstool" lzma_lib)
 target_link_libraries("cbfstool" lz4_lib)
+target_link_libraries("cbfstool" vbootstub_lib)
 target_link_libraries("cbfstool" commonlib)
 install(TARGETS "cbfstool" DESTINATION sbin)
