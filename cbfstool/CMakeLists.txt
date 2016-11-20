@@ -2,7 +2,7 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # WORKAROUND Googles insaity.
-include_directories(vboot_justenough)
+include_directories(vbootstub)
 
 add_subdirectory(lzma)
 add_subdirectory(lz4)
@@ -68,7 +68,7 @@ add_library(cbfs_lib
 )
 
 add_library(vbootstub_lib
-  vboot_justenough/2sha_stub.c
+  vbootstub/2sha_stub.c
 )
 
 add_executable("cbfstool" cbfstool.c)
