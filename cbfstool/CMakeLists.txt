@@ -3,6 +3,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # WORKAROUND Googles insaity.
 include_directories(vbootstub)
+add_subdirectory(vbootstub)
 
 add_subdirectory(lzma)
 add_subdirectory(lz4)
@@ -65,10 +66,6 @@ add_library(cbfs_lib
 # linux as payload
   linux_trampoline.c
   cbfs-payload-linux.c
-)
-
-add_library(vbootstub_lib
-  vbootstub/2sha_stub.c
 )
 
 add_executable("cbfstool" cbfstool.c)
