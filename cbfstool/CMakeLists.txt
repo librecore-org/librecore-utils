@@ -1,9 +1,8 @@
 # Ensure we have this at the top here.
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-# WORKAROUND Googles insaity.
-include_directories(vbootstub)
-add_subdirectory(vbootstub)
+# WORKAROUND Googles insanity.
+include_directories(../vbootstub/include)
 
 add_subdirectory(lzma)
 add_subdirectory(lz4)
