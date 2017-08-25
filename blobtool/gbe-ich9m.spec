@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2014 Steve Shenton <sgsit@libreboot.org>
 #                    Leah Rowe <info@minifree.org>
-# Copyright (C) 2016 Damien Zammit <damien@zamaudio.com>
+# Copyright (C) 2017 Damien Zammit <damien@zamaudio.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -137,6 +137,6 @@
 	"pxe33_reserved2_1"	: 6,
 	"pxe33_signature"	: 2,
 	"pxe_padding"[11]	: 16,
-	"checksum"		: 16,
+	"checksum_gbe"		: 16,
 	"padding"[0xf80]	: 8
 }
