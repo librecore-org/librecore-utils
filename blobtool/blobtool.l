@@ -1,6 +1,6 @@
 /*
  * blobtool - Compiler/Decompiler for data blobs with specs
- * Copyright (C) 2016 Damien Zammit <damien@zamaudio.com>
+ * Copyright (C) 2017 Damien Zammit <damien@zamaudio.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,8 +33,9 @@ unsigned int parsehex (char *s)
 			nib = s[i] - 'a' + 10;
 		} else if (s[i] >= 'A' && s[i] <= 'F') {
 			nib = s[i] - 'A' + 10;
+		} else {
+			return 0;
 		}
-
 		val |= nib << (((nibs - 1) - (i - 2)) * 4);
 	}
 	return val;

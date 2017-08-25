@@ -1,6 +1,6 @@
 /*
  * blobtool - Compiler/Decompiler for data blobs with specs
- * Copyright (C) 2016 Damien Zammit <damien@zamaudio.com>
+ * Copyright (C) 2017 Damien Zammit <damien@zamaudio.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,17 +21,6 @@
 //#define YYDEBUG 1
 int yylex (void);
 void yyerror (char const *);
-
-struct macaddr {
-	unsigned char byte[6];
-};
-
-struct pciids {
-	unsigned short ssdid;	// Subsystem device id
-	unsigned short ssvid;	// Subsystem vendor id
-	unsigned short did;	// Device id
-	unsigned short vid;	// Vendor id
-};
 
 struct field {
 	char *name;
@@ -63,37 +52,6 @@ struct blob {
 #define CHECKSUM_SIZE 16
 
 struct blob *binary;
-struct macaddr mac;
-struct pciids ids;
-
-static struct macaddr parsemac(char *mac)
-{
-	struct macaddr m = { 0 };
-	int i, j;
-
-	for (i = 0; i < 6; i++) {
-		/* Go through each nibble of the byte */
-		for (j = 0; j < 2; j++) {
-			if (mac[(i*3) + j] >= 'a' && mac[(i*3) + j] <= 'f')
-				m.byte[i] |= (uint8_t)(
-					(mac[(i*3)+j] - 87) << ((j^1) << 2)
-					);
-			else if (mac[(i*3) + j] >= 'A' && mac[(i*3) + j] <= 'F')
-				m.byte[i] |= (uint8_t)(
-					(mac[(i*3) + j] - 55) << ((j^1) << 2)
-					);
-			else if (mac[(i*3) +j ] >= '0' && mac[(i*3) + j] <= '9')
-				m.byte[i] |= (uint8_t)(
-					(mac[(i*3) + j] - 48) << ((j^1) << 2)
-					);
-			else {
-				fprintf(stderr, "Error: MAC address invalid \n");
-				exit(1);
-			}
-		}
-	}
-	return m;
-}
 
 unsigned char* value_to_bits (unsigned int v, unsigned int w)
 {
@@ -287,100 +245,29 @@ void generate_setter_bitfields(unsigned char *bin)
 	fprintf (fp, "\n}\n");
 }
 
-/* {}{} -> BIN */
-void generate_binary(void)
+void generate_binary_with_gbe_checksum(void)
 {
-	unsigned int i;
+	int i;
+	unsigned short checksum;
 
-	if (binary->bloblen % 8) {
-		fprintf (stderr, "ERROR: Spec must be multiple of 8 bits wide\n");
-		exit (1);
+	/* traverse spec, push to blob and add up for checksum */
+	struct field *ptr;
+	unsigned int uptochksum = 0;
+	for (ptr = sym_table; ptr != (struct field *) 0; ptr = ptr->next) {
+		if (strcmp (ptr->name, "checksum_gbe") == 0) {
+			/* Stop traversing because we hit checksum */
+			ptr = ptr->next;
+			break;
+		}
+		append_field_to_blob (
+			value_to_bits(ptr->value, ptr->width),
+			ptr->width);
+		uptochksum += ptr->width;
 	}
 
-	if (getsym ("macaddress0")) {
-		set_bitfield("macaddress0", mac.byte[0]);
-		set_bitfield("macaddress1", mac.byte[1]);
-		set_bitfield("macaddress2", mac.byte[2]);
-		set_bitfield("macaddress3", mac.byte[3]);
-		set_bitfield("macaddress4", mac.byte[4]);
-		set_bitfield("macaddress5", mac.byte[5]);
-	}
-
-	if (getsym ("checksum")) {
-		/* traverse spec, push to blob and add up for checksum */
-		struct field *ptr;
-		unsigned int uptochksum = 0;
-		for (ptr = sym_table; ptr != (struct field *) 0; ptr = ptr->next) {
-			if (strcmp (ptr->name, "checksum") == 0) {
-				/* Stop traversing because we hit checksum */
-				ptr = ptr->next;
-				break;
-			}
-			append_field_to_blob (
-				value_to_bits(ptr->value, ptr->width),
-				ptr->width);
-			uptochksum += ptr->width;
-		}
-
-		/* deserialize bits of blob up to checksum */
-		for (i = 0; i < uptochksum; i += 8) {
-			unsigned char byte = (((binary->blb[i+0] & 1) << 0)
-						| ((binary->blb[i+1] & 1) << 1)
-						| ((binary->blb[i+2] & 1) << 2)
-						| ((binary->blb[i+3] & 1) << 3)
-						| ((binary->blb[i+4] & 1) << 4)
-						| ((binary->blb[i+5] & 1) << 5)
-						| ((binary->blb[i+6] & 1) << 6)
-						| ((binary->blb[i+7] & 1) << 7)
-			);
-			fprintf(fp, "%c", byte);
-
-			/* incremental 16 bit checksum */
-			if ((i % 16) < 8) {
-				binary->checksum += byte;
-			} else {
-				binary->checksum += byte << 8;
-			}
-		}
-
-		/* Now write checksum */
-		set_bitfield ("checksum", binary->checksum);
-
-		fprintf(fp, "%c", 0xba - (binary->checksum & 0xff));
-		fprintf(fp, "%c", 0xba - ((binary->checksum & 0xff00) >> 8));
-
-		append_field_to_blob (value_to_bits(binary->checksum, 16), 16);
-
-		for (; ptr != (struct field *) 0; ptr = ptr->next) {
-			append_field_to_blob (
-				value_to_bits(ptr->value, ptr->width), ptr->width);
-		}
-
-		/* deserialize rest of blob past checksum */
-		for (i = uptochksum + CHECKSUM_SIZE; i < binary->bloblen; i += 8) {
-			unsigned char byte = (((binary->blb[i+0] & 1) << 0)
-						| ((binary->blb[i+1] & 1) << 1)
-						| ((binary->blb[i+2] & 1) << 2)
-						| ((binary->blb[i+3] & 1) << 3)
-						| ((binary->blb[i+4] & 1) << 4)
-						| ((binary->blb[i+5] & 1) << 5)
-						| ((binary->blb[i+6] & 1) << 6)
-						| ((binary->blb[i+7] & 1) << 7)
-			);
-			fprintf(fp, "%c", byte);
-		}
-	} else {
-		/* traverse spec, push to blob (forget checksumming) */
-		struct field *ptr;
-		for (ptr = sym_table; ptr != (struct field *) 0; ptr = ptr->next) {
-			append_field_to_blob (
-				value_to_bits(ptr->value, ptr->width),
-				ptr->width);
-		}
-
-		/* deserialize bits of blob */
-		for (i = 0; i < binary->bloblen; i += 8) {
-			unsigned char byte = (((binary->blb[i+0] & 1) << 0)
+	/* deserialize bits of blob up to checksum */
+	for (i = 0; i < uptochksum; i += 8) {
+		unsigned char byte = (((binary->blb[i+0] & 1) << 0)
 					| ((binary->blb[i+1] & 1) << 1)
 					| ((binary->blb[i+2] & 1) << 2)
 					| ((binary->blb[i+3] & 1) << 3)
@@ -388,9 +275,82 @@ void generate_binary(void)
 					| ((binary->blb[i+5] & 1) << 5)
 					| ((binary->blb[i+6] & 1) << 6)
 					| ((binary->blb[i+7] & 1) << 7)
-			);
-			fprintf(fp, "%c", byte);
+		);
+		fprintf(fp, "%c", byte);
+
+		/* incremental 16 bit checksum */
+		if ((i % 16) < 8) {
+			binary->checksum += byte;
+		} else {
+			binary->checksum += byte << 8;
 		}
+	}
+
+	checksum = (0xbaba - binary->checksum) & 0xffff;
+
+	/* Now write checksum */
+	set_bitfield ("checksum_gbe", checksum);
+
+	fprintf(fp, "%c", checksum & 0xff);
+	fprintf(fp, "%c", (checksum & 0xff00) >> 8);
+
+	append_field_to_blob (value_to_bits(checksum, 16), 16);
+
+	for (; ptr != (struct field *) 0; ptr = ptr->next) {
+		append_field_to_blob (
+			value_to_bits(ptr->value, ptr->width), ptr->width);
+	}
+
+	/* deserialize rest of blob past checksum */
+	for (i = uptochksum + CHECKSUM_SIZE; i < binary->bloblen; i += 8) {
+		unsigned char byte = (((binary->blb[i+0] & 1) << 0)
+					| ((binary->blb[i+1] & 1) << 1)
+					| ((binary->blb[i+2] & 1) << 2)
+					| ((binary->blb[i+3] & 1) << 3)
+					| ((binary->blb[i+4] & 1) << 4)
+					| ((binary->blb[i+5] & 1) << 5)
+					| ((binary->blb[i+6] & 1) << 6)
+					| ((binary->blb[i+7] & 1) << 7)
+		);
+		fprintf(fp, "%c", byte);
+	}
+}
+
+/* {}{} -> BIN */
+void generate_binary(void)
+{
+	unsigned int i;
+	struct field *ptr;
+
+	if (binary->bloblen % 8) {
+		fprintf (stderr, "ERROR: Spec must be multiple of 8 bits wide\n");
+		exit (1);
+	}
+
+	if (getsym ("checksum_gbe")) {
+		generate_binary_with_gbe_checksum();
+		return;
+	}
+
+	/* traverse spec, push to blob */
+	for (ptr = sym_table; ptr != (struct field *) 0; ptr = ptr->next) {
+		append_field_to_blob (
+			value_to_bits(ptr->value, ptr->width),
+			ptr->width);
+	}
+
+	/* deserialize bits of blob */
+	for (i = 0; i < binary->bloblen; i += 8) {
+		unsigned char byte = (((binary->blb[i+0] & 1) << 0)
+				| ((binary->blb[i+1] & 1) << 1)
+				| ((binary->blb[i+2] & 1) << 2)
+				| ((binary->blb[i+3] & 1) << 3)
+				| ((binary->blb[i+4] & 1) << 4)
+				| ((binary->blb[i+5] & 1) << 5)
+				| ((binary->blb[i+6] & 1) << 6)
+				| ((binary->blb[i+7] & 1) << 7)
+		);
+		fprintf(fp, "%c", byte);
 	}
 }
 
@@ -486,7 +446,7 @@ int main (int argc, char *argv[])
 	unsigned char *parsestring;
 	unsigned char c;
 	unsigned int pos = 0;
-	int ret;
+	int ret = 0;
 
 #if YYDEBUG == 1
 	yydebug = 1;
@@ -503,9 +463,11 @@ int main (int argc, char *argv[])
 		lenspec = ftell(fp);
 		fseek(fp, 0, SEEK_SET);
 		parsestring = (unsigned char *) malloc (lenspec);
-		while (fread(&c, 1, 1, fp) != 0) {
-			parsestring[pos++] = c;
+		if (!parsestring) {
+			printf("Out of memory\n");
+			exit(1);
 		}
+		fread(parsestring, 1, lenspec, fp);
 		fclose(fp);
 
 		/* Load Setter */
@@ -515,9 +477,11 @@ int main (int argc, char *argv[])
 		fseek(fp, 0, SEEK_SET);
 		parsestring = (unsigned char *) realloc (parsestring,
 							lenspec + lensetter);
-		while (fread(&c, 1, 1, fp) != 0) {
-			parsestring[pos++] = c;
+		if (!parsestring) {
+			printf("Out of memory\n");
+			exit(1);
 		}
+		fread(parsestring + lenspec, 1, lensetter, fp);
 		fclose(fp);
 
 		/* Open output and parse string - output to fp */
@@ -533,13 +497,15 @@ int main (int argc, char *argv[])
 		lenspec = ftell(fp);
 		fseek(fp, 0, SEEK_SET);
 		parsestring = (unsigned char *) malloc (lenspec + 1);
-		while (fread(&c, 1, 1, fp) != 0) {
-			parsestring[pos++] = c;
+		fread(parsestring, 1, lenspec, fp);
+		if (!parsestring) {
+			printf("Out of memory\n");
+			exit(1);
 		}
 		fclose(fp);
 
 		/* Add binary read trigger token */
-		parsestring[pos++] = '%';
+		parsestring[lenspec] = '%';
 
 		/* Load Actual Binary */
 		fp = fopen(argv[3], "rb");
@@ -547,10 +513,11 @@ int main (int argc, char *argv[])
 		binary->lenactualblob = ftell(fp);
 		fseek(fp, 0, SEEK_SET);
 		binary->actualblob = (unsigned char *) malloc (binary->lenactualblob);
-		pos = 0;
-		while (fread(&c, 1, 1, fp) != 0) {
-			binary->actualblob[pos++] = c;
+		if (!binary->actualblob) {
+			printf("Out of memory\n");
+			exit(1);
 		}
+		fread(binary->actualblob, 1, binary->lenactualblob, fp);
 		fclose(fp);
 
 		/* Open output and parse - output to fp */
